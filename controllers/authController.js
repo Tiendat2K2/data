@@ -2,14 +2,12 @@ const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
-
 const pool = new Pool({
     connectionString: process.env.POSTGRES_URL, // Đảm bảo biến môi trường DATABASE_URL được cấu hình
     ssl: {
         rejectUnauthorized: false
     }
 });
-
 exports.register = async (req, res) => {
     const { Email, Username, Password } = req.body;
 
@@ -88,14 +86,12 @@ exports.login = async (req, res) => {
         process.env.access_token,
         { expiresIn: '300d' }
       );
-  
       // Tạo refresh_token
       const refresh_token = jwt.sign(
         { id: user.UserID, roleId: user.RoleID },
         process.env.refresh_token,
         { expiresIn: '365h' }
       );
-  
       res.json({
         status: 1,
         message: 'Đăng nhập thành công!',
@@ -111,3 +107,71 @@ exports.login = async (req, res) => {
       }
     }
   };
+  function generateRandomPassword(length) {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let password = '';
+    for (let i = 0; i < length; i++) {
+        password += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return password;
+}
+exports.sendVerificationEmail = async (req, res) => {
+    const { Email } = req.body;
+
+    if (!Email) {
+        return res.status(400).json({ message: 'Vui lòng cung cấp địa chỉ email!' });
+    }
+
+    try {
+        // Connect to the database
+        const client = await pool.connect();
+
+        try {
+            // Check if email exists
+            const userResult = await client.query(
+                'SELECT UserID FROM Users WHERE Email = $1',
+                [Email]
+            );
+
+            if (userResult.rows.length === 0) {
+                return res.status(404).json({ message: 'Không tìm thấy tài khoản với email đã cho!' });
+            }
+
+            // Generate a new password
+            const newPassword = generateRandomPassword(10);
+            const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+            // Update the new password in the database
+            await client.query(
+                'UPDATE Users SET Password = $1 WHERE UserID = $2',
+                [hashedNewPassword, userResult.rows[0].userid]
+            );
+
+            // Configure email sender
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS,
+                },
+            });
+
+            const mailOptions = {
+                from: process.env.EMAIL_USER,
+                to: Email,
+                subject: 'Mật khẩu mới của bạn',
+                text: `Mật khẩu mới của bạn là: ${newPassword}`,
+            };
+
+            // Send email
+            await transporter.sendMail(mailOptions);
+
+            res.status(200).json({ status: 1, message: 'Mật khẩu mới đã được gửi tới email của bạn!' });
+        } finally {
+            client.release(); // Release the client back to the pool
+        }
+    } catch (err) {
+        console.error('Lỗi khi đặt lại mật khẩu:', err);
+        res.status(500).json({ message: 'Lỗi máy chủ', error: err.message });
+    }
+};
