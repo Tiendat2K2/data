@@ -13,7 +13,7 @@ const options = {
     },
     servers: [
       {
-        url: process.env.BASE_URL || "@https://data-o14g.onrender.com", // Default to local URL if BASE_URL is not set
+        url: process.env.BASE_URL || "https://data-o14g.onrender.com", // Default to local URL if BASE_URL is not set
       },
     ],
     components: {
