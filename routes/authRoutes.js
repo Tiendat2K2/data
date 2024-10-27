@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { register ,login} = require('../controllers/authController');
+const { register ,login,sendVerificationEmail} = require('../controllers/authController');
 
 /**
  * @swagger
@@ -66,4 +66,34 @@ router.post('/register', register);
  *         description: Lỗi máy chủ
  */
 router.post('/login', login);
+/**
+ * @swagger
+ * /api/auth/forgot-password:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Gửi liên kết đặt lại mật khẩu đến email người dùng
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - Email
+ *             properties:
+ *               Email:
+ *                 type: string
+ *                 format: email
+ *                 description: Địa chỉ email của người dùng
+ *     responses:
+ *       200:
+ *         description: Liên kết đặt lại mật khẩu đã được gửi tới email của bạn
+ *       400:
+ *         description: Yêu cầu không hợp lệ, thiếu email
+ *       404:
+ *         description: Không tìm thấy người dùng với email đã cho
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+router.post('/forgot-password', sendVerificationEmail); // Thay đổi route thành forgot-password
 module.exports = router;
