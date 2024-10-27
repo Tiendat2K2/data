@@ -13,7 +13,7 @@ const options = {
     },
     servers: [
       {
-        url: "http://localhost:3000", // Hardcoded URL
+        url: process.env.BASE_URL || "@https://data-o14g.onrender.com", // Default to local URL if BASE_URL is not set
       },
     ],
     components: {
