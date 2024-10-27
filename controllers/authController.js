@@ -1,6 +1,7 @@
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
 require('dotenv').config();
 const pool = new Pool({
     connectionString: process.env.POSTGRES_URL, // Đảm bảo biến môi trường DATABASE_URL được cấu hình
