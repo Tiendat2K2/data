@@ -8,9 +8,9 @@ const path = require('path');
 
 const app = express();
 
-// Cấu hình CORS: Cho phép yêu cầu từ một số nguồn cụ thể
+// Cấu hình CORS: Cho phép yêu cầu từ các nguồn cụ thể
 const corsOptions = {
-    origin: ['https://data-o14g.onrender.com'], // Thêm địa chỉ frontend nếu cần
+    origin: ['https://data-o14g.onrender.com', 'https://wesite-nine.vercel.app'], // Thêm các địa chỉ frontend cần thiết
     methods: ['GET', 'POST', 'PUT', 'DELETE'], // Các phương thức cho phép
     credentials: true, // Nếu sử dụng cookies
 };
@@ -80,11 +80,9 @@ async function initializeDatabase() {
 
 // Khởi tạo cơ sở dữ liệu trước khi khởi động server
 initializeDatabase().then(() => {
-    initializeDatabase().then(() => {
-        const PORT = process.env.PORT || 3000;
-        app.listen(PORT, '0.0.0.0', () => {
-          console.log(`Server running on https://data-o14g.onrender.com`);
-        });
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server running on https://data-o14g.onrender.com`);
     });
 });
 
