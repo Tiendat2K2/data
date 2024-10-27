@@ -8,8 +8,13 @@ const path = require('path');
 
 const app = express();
 
-// Cấu hình CORS
-app.use(cors()); // Cho phép tất cả các nguồn
+// Cấu hình CORS: Cho phép yêu cầu từ một số nguồn cụ thể
+const corsOptions = {
+    origin: ['https://data-o14g.onrender.com'], // Thêm địa chỉ frontend nếu cần
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Các phương thức cho phép
+    credentials: true, // Nếu sử dụng cookies
+};
+app.use(cors(corsOptions)); // Sử dụng các tùy chọn CORS đã cấu hình
 
 // Middleware để ghi lại các yêu cầu
 app.use((req, res, next) => {
@@ -75,9 +80,11 @@ async function initializeDatabase() {
 
 // Khởi tạo cơ sở dữ liệu trước khi khởi động server
 initializeDatabase().then(() => {
-    const PORT = process.env.PORT || 3000;
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`Server running on http://localhost:${PORT}`);
+    initializeDatabase().then(() => {
+        const PORT = process.env.PORT || 3000;
+        app.listen(PORT, '0.0.0.0', () => {
+          console.log(`Server running on https://data-o14g.onrender.com`);
+        });
     });
 });
 
