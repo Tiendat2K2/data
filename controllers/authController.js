@@ -1,7 +1,16 @@
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
+const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
+function generateRandomPassword(length) {
+    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+    let password = "";
+    for (let i = 0; i < length; i++) {
+        password += charset.charAt(Math.floor(Math.random() * charset.length));
+    }
+    return password;
+}
 const pool = new Pool({
     connectionString: process.env.POSTGRES_URL,
     ssl: {
@@ -102,3 +111,97 @@ exports.login = async (req, res) => {
         }
     }
   };
+exports.getAllUsers = async (req, res) => {
+    try {
+        const result = await pool.query(
+            'SELECT "UserID", "Hoten", "Ngaysinh", "Noisinh", "Chuyenganh", "Sonam", "Gioitinh", "Std", "Tendonvi", "Nganh", "Img", "MGV" FROM "Users" WHERE "RoleID" = $1',
+            [2] // Parameterized query to avoid SQL injection
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Không tìm thấy người dùng nào!' });
+        }
+
+        res.status(200).json({
+            status: 1, // Return status code
+            message: 'Danh sách người dùng', // Return a message
+            data: result.rows // Return the fetched users
+        });
+    } catch (err) {
+        console.error('Lỗi lấy danh sách người dùng:', err);
+        res.status(500).json({ message: 'Lỗi máy chủ', error: err.message });
+    }
+};
+exports.sendVerificationEmail = async (req, res) => {
+    const { Email } = req.body;
+    let client;
+
+    if (!Email) {
+        return res.status(400).json({ message: 'Vui lòng cung cấp địa chỉ email!' });
+    }
+
+    try {
+        client = await pool.connect();
+
+        // Kiểm tra email tồn tại
+        const userQuery = 'SELECT "UserID", "Email" FROM "Users" WHERE "Email" = $1';
+        const userResult = await client.query(userQuery, [Email]);
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ 
+                message: 'Không tìm thấy tài khoản với email đã cho!' 
+            });
+        }
+
+        // Tạo mật khẩu mới
+        const newPassword = generateRandomPassword(10);
+        const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+        // Cập nhật mật khẩu mới trong database
+        await client.query(
+            'UPDATE "Users" SET "Password" = $1 WHERE "Email" = $2',
+            [hashedNewPassword, Email]
+        );
+
+        // Cấu hình nodemailer
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            }
+        });
+
+        // Cấu hình email
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: Email,
+            subject: 'Mật khẩu mới của bạn',
+            text: `Mật khẩu mới của bạn là: ${newPassword}`,
+            html: `
+                <h2>Mật khẩu mới của bạn</h2>
+                <p>Mật khẩu mới của bạn là: <strong>${newPassword}</strong></p>
+                <p>Vui lòng đăng nhập và đổi mật khẩu ngay sau khi nhận được email này.</p>
+            `
+        };
+
+        // Gửi email
+        await transporter.sendMail(mailOptions);
+
+        res.status(200).json({
+            status: 1,
+            message: 'Mật khẩu mới đã được gửi tới email của bạn!'
+        });
+
+    } catch (err) {
+        console.error('Lỗi khi đặt lại mật khẩu:', err);
+        res.status(500).json({ 
+            message: 'Lỗi máy chủ', 
+            error: err.message 
+        });
+    } finally {
+        if (client) {
+            client.release();
+        }
+    }
+};

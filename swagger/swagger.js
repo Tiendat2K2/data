@@ -1,7 +1,6 @@
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 require('dotenv').config();
-
 const options = {
   definition: {
     openapi: "3.0.0",
@@ -13,11 +12,9 @@ const options = {
     servers: [
       {
         url: process.env.BASE_URL || "http://localhost:3000",
-        description: "Production Server"
       },
       {
         url: "http://localhost:3000",
-        description: "Development Server"
       }
     ],
     components: {

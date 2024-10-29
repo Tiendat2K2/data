@@ -12,14 +12,12 @@ const app = express();
 
 // Cấu hình CORS đơn giản hơn cho development
 const corsOptions = {
-    origin: 'http://localhost:3000',
+    origin: ['http://localhost:3000', 'http://localhost:3001','https://wesite-nine.vercel.app'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     credentials: true
 };
-
 app.use(cors(corsOptions));
-
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -27,10 +25,8 @@ app.use((req, res, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
     next();
 });
-
 // Cấu hình Swagger
 setupSwagger(app);
-
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api', chuyenNganhRoutes);
