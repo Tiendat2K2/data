@@ -1,21 +1,22 @@
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 require('dotenv').config();
+
 const options = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "KHCN API",
+      title: "KHCN",
       version: "1.0.0",
-      description: "API documentation for KHCN system",
+      description: "API for user authentication",
     },
     servers: [
       {
-        url: process.env.BASE_URL || "http://localhost:3000",
+
+        url: "http://localhost:3000", // Ensure 'http://' is included
+        url: process.env.BASE_URL || "https://data-e7wi.onrender.com", // Default to local URL if BASE_URL is not set
+
       },
-      {
-        url: "http://localhost:3000",
-      }
     ],
     components: {
       securitySchemes: {
@@ -38,22 +39,7 @@ const options = {
 const swaggerSpec = swaggerJsDoc(options);
 
 const setupSwagger = (app) => {
-  // Add custom CSS to improve documentation appearance
-  const customCss = `
-    .swagger-ui .topbar { display: none }
-    .swagger-ui .info { margin: 20px 0 }
-    .swagger-ui .scheme-container { margin: 20px 0 }
-  `;
-
-  const swaggerUiOptions = {
-    customCss,
-    customSiteTitle: "KHCN API Documentation",
-    swaggerOptions: {
-      persistAuthorization: true,
-    }
-  };
-
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOptions));
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 };
 
 module.exports = setupSwagger;
