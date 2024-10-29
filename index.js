@@ -10,6 +10,7 @@ const path = require('path');
 
 const app = express();
 
+<<<<<<< HEAD
 // Cấu hình CORS
 const corsOptions = {
   origin: [ 'https://wesite-nine.vercel.app', 'http://localhost:3000','http://localhost:3001'],
@@ -17,6 +18,15 @@ const corsOptions = {
   credentials: true,
 };
 app.use(cors(corsOptions));
+=======
+// Cấu hình CORS: Cho phép yêu cầu từ các nguồn cụ thể
+const corsOptions = {
+    origin: ['https://data-o14g.onrender.com', 'https://wesite-nine.vercel.app'], // Thêm các địa chỉ frontend cần thiết
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Các phương thức cho phép
+    credentials: true, // Nếu sử dụng cookies
+};
+app.use(cors(corsOptions)); // Sử dụng các tùy chọn CORS đã cấu hình
+>>>>>>> 4aab47b7b435d79655f49d335ca146f1524bb984
 
 // Middleware
 app.use((req, res, next) => {
@@ -78,7 +88,7 @@ async function initializeDatabase() {
 initializeDatabase().then(() => {
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, '0.0.0.0', () => {
-      console.log(`Server running on http://localhost:${PORT}`);
+      console.log(`Server running on https://data-o14g.onrender.com`);
     });
 });
 

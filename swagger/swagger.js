@@ -12,7 +12,11 @@ const options = {
     },
     servers: [
       {
+<<<<<<< HEAD
         url: "http://localhost:3000", // Ensure 'http://' is included
+=======
+        url: process.env.BASE_URL || "https://data-o14g.onrender.com", // Default to local URL if BASE_URL is not set
+>>>>>>> 4aab47b7b435d79655f49d335ca146f1524bb984
       },
     ],
     components: {

@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+<<<<<<< HEAD
 const { register, login, sendVerificationEmail ,refreshToken,getAllUsers,getUserById,resetTeacherPassword,getUserCount,getTeachers,updatePassword,updateTeacher,updateUser,deleteTeacher} = require('../controllers/authController');
 const { authMiddleware } = require('../middleware/authMiddleware');
 const multer = require('multer');
@@ -14,6 +15,10 @@ const storage = multer.diskStorage({
     }
 });
 const upload = multer({ storage: storage });
+=======
+const { register ,login,sendVerificationEmail} = require('../controllers/authController');
+
+>>>>>>> 4aab47b7b435d79655f49d335ca146f1524bb984
 /**
  * @swagger
  * /api/auth/register:
@@ -99,6 +104,7 @@ router.post('/login', login);
  *                 description: Địa chỉ email của người dùng
  *     responses:
  *       200:
+<<<<<<< HEAD
  *         description: Mật khẩu mới đã được gửi tới email của bạn
  *       400:
  *         description: Yêu cầu không hợp lệ, thiếu email
@@ -534,3 +540,15 @@ router.put('/updateUser', authMiddleware, upload.single('Img'), updateUser);
  */
 router.delete('/deleteTeacher/:UserID', authMiddleware, deleteTeacher);
 module.exports = router;
+=======
+ *         description: Liên kết đặt lại mật khẩu đã được gửi tới email của bạn
+ *       400:
+ *         description: Yêu cầu không hợp lệ, thiếu email
+ *       404:
+ *         description: Không tìm thấy người dùng với email đã cho
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+router.post('/forgot-password', sendVerificationEmail); // Thay đổi route thành forgot-password
+module.exports = router;
+>>>>>>> 4aab47b7b435d79655f49d335ca146f1524bb984
