@@ -12,7 +12,7 @@ const app = express();
 
 // Cấu hình CORS đơn giản hơn cho development
 const corsOptions = {
-    origin: ['http://localhost:3000', 'http://localhost:3001','https://wesite-nine.vercel.app'],
+    origin: ['https://data-e7wi.onrender.com', 'http://localhost:3000','https://wesite-nine.vercel.app'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     credentials: true
