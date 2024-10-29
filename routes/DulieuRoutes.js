@@ -230,7 +230,7 @@ router.get('/dulieu/count', authMiddleware, getDulieuCount);
  * @swagger
  * /api/dulieu/download/{ID}:
  *   get:
- *     summary: Download file
+ *     summary: Download a file
  *     tags: [Dulieu]
  *     security:
  *       - BearerAuth: []
@@ -240,9 +240,10 @@ router.get('/dulieu/count', authMiddleware, getDulieuCount);
  *         required: true
  *         schema:
  *           type: integer
+ *         description: ID of the file to download
  *     responses:
  *       200:
- *         description: File stream
+ *         description: File downloaded successfully
  *         content:
  *           application/octet-stream:
  *             schema:
@@ -250,6 +251,8 @@ router.get('/dulieu/count', authMiddleware, getDulieuCount);
  *               format: binary
  *       404:
  *         description: File not found
+ *       500:
+ *         description: Server error
  */
 router.get('/dulieu/download/:ID', authMiddleware, downloadFile);
 
@@ -257,7 +260,7 @@ router.get('/dulieu/download/:ID', authMiddleware, downloadFile);
  * @swagger
  * /api/dulieu/view/{ID}:
  *   get:
- *     summary: View file
+ *     summary: View a file
  *     tags: [Dulieu]
  *     security:
  *       - BearerAuth: []
@@ -267,9 +270,10 @@ router.get('/dulieu/download/:ID', authMiddleware, downloadFile);
  *         required: true
  *         schema:
  *           type: integer
+ *         description: ID of the file to view
  *     responses:
  *       200:
- *         description: File content
+ *         description: File viewed successfully
  *         content:
  *           application/pdf:
  *             schema:
@@ -281,6 +285,8 @@ router.get('/dulieu/download/:ID', authMiddleware, downloadFile);
  *               format: binary
  *       404:
  *         description: File not found
+ *       500:
+ *         description: Server error
  */
 router.get('/dulieu/view/:ID', authMiddleware, viewFile);
 

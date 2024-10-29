@@ -10,6 +10,5 @@ const config = {
         env: 'production'
     }
 };
-
 const environment = process.env.NODE_ENV || 'development';
 module.exports = config[environment];
