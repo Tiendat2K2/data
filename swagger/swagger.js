@@ -6,18 +6,19 @@ const options = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "KHCN",
+      title: "KHCN API",
       version: "1.0.0",
-      description: "API for user authentication",
+      description: "API documentation for KHCN system",
     },
     servers: [
       {
-<<<<<<< HEAD
-        url: "http://localhost:3000", // Ensure 'http://' is included
-=======
-        url: process.env.BASE_URL || "https://data-o14g.onrender.com", // Default to local URL if BASE_URL is not set
->>>>>>> 4aab47b7b435d79655f49d335ca146f1524bb984
+        url: process.env.BASE_URL || "http://localhost:3000",
+        description: "Production Server"
       },
+      {
+        url: "http://localhost:3000",
+        description: "Development Server"
+      }
     ],
     components: {
       securitySchemes: {
@@ -40,7 +41,22 @@ const options = {
 const swaggerSpec = swaggerJsDoc(options);
 
 const setupSwagger = (app) => {
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  // Add custom CSS to improve documentation appearance
+  const customCss = `
+    .swagger-ui .topbar { display: none }
+    .swagger-ui .info { margin: 20px 0 }
+    .swagger-ui .scheme-container { margin: 20px 0 }
+  `;
+
+  const swaggerUiOptions = {
+    customCss,
+    customSiteTitle: "KHCN API Documentation",
+    swaggerOptions: {
+      persistAuthorization: true,
+    }
+  };
+
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOptions));
 };
 
 module.exports = setupSwagger;

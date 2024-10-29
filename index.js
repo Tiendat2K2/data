@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const setupSwagger = require('./swagger/swagger');
 const sequelize = require("./config/database");
-const authRoutes = require('./routes/authRoutes');
+const authRoutes = require('./routes/authRoutest');
 const chuyenNganhRoutes = require('./routes/ChuyenNganhRoutes');
 const DulieuRoutes = require('./routes/DulieuRoutes');
 const fs = require('fs');
@@ -10,86 +10,81 @@ const path = require('path');
 
 const app = express();
 
-<<<<<<< HEAD
-// Cấu hình CORS
+// Cấu hình CORS đơn giản hơn cho development
 const corsOptions = {
-  origin: [ 'https://wesite-nine.vercel.app', 'http://localhost:3000','http://localhost:3001'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true,
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    credentials: true
 };
+
 app.use(cors(corsOptions));
-=======
-// Cấu hình CORS: Cho phép yêu cầu từ các nguồn cụ thể
-const corsOptions = {
-    origin: ['https://data-o14g.onrender.com', 'https://wesite-nine.vercel.app'], // Thêm các địa chỉ frontend cần thiết
-    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Các phương thức cho phép
-    credentials: true, // Nếu sử dụng cookies
-};
-app.use(cors(corsOptions)); // Sử dụng các tùy chọn CORS đã cấu hình
->>>>>>> 4aab47b7b435d79655f49d335ca146f1524bb984
 
 // Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
     next();
 });
-app.use(express.json());
+
+// Cấu hình Swagger
 setupSwagger(app);
 
-// Register routes
+// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api', chuyenNganhRoutes);
 app.use('/api', DulieuRoutes);
 
-// Load all models from the models directory
-const modelsDir = path.join(__dirname, 'models');
-const models = {}; // Initialize the models object
-
-fs.readdirSync(modelsDir).forEach(file => {
-  if (file.endsWith('.js') && file !== 'index.js') {
-    const model = require(path.join(modelsDir, file));
-    models[model.name] = model;
-  }
+// 404 Handler
+app.use((req, res) => {
+    res.status(404).json({ message: 'Route không tồn tại' });
 });
 
-// Set up associations between models
-Object.values(models).forEach(model => {
-  if (model.associate) {
-    model.associate(models);
-  }
-});
-
-// Initialize database and start server
-async function initializeDatabase() {
-  try {
-    await sequelize.authenticate();
-    console.log("Kết nối CSDL thành công");
-    await sequelize.sync({ alter: true });
-    console.log("Đã đồng bộ hóa các bảng");
-    const Role = models.Role;
-    if (Role) {
-      const roleCount = await Role.count();
-      if (roleCount === 0) {
-        await Role.bulkCreate([
-          { RoleName: 'admin' },
-          { RoleName: 'teacher' }
-        ]);
-        console.log("Đã thêm các role mặc định");
-      } else {
-        console.log("Dữ liệu role đã tồn tại, không cần thêm mới");
-      }
-    }
-    console.log("Khởi tạo cơ sở dữ liệu hoàn tất");
-  } catch (error) {
-    console.error("Lỗi khi khởi tạo cơ sở dữ liệu:", error);
-  }
-}
-
-initializeDatabase().then(() => {
-    const PORT = process.env.PORT || 3000;
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`Server running on https://data-o14g.onrender.com`);
+// Error Handler
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ 
+        message: 'Đã xảy ra lỗi server', 
+        error: err.message 
     });
 });
 
-module.exports = { app, models };
+// Database initialization
+async function initializeDatabase() {
+    try {
+        await sequelize.authenticate();
+        console.log("✅ Kết nối CSDL thành công");
+
+        await sequelize.sync({ alter: true });
+        console.log("✅ Đã đồng bộ hóa các bảng");
+
+        console.log("✅ Khởi tạo cơ sở dữ liệu hoàn tất");
+    } catch (error) {
+        console.error("❌ Lỗi khởi tạo cơ sở dữ liệu:", error);
+        process.exit(1);
+    }
+}
+
+// Start server
+const PORT = 3000;
+initializeDatabase().then(() => {
+    const server = app.listen(PORT, () => {
+        console.log(`🚀 Server đang chạy tại http://localhost:${PORT}`);
+        console.log(`📚 API Documentation: http://localhost:${PORT}/api-docs`);
+    });
+
+    // Graceful shutdown
+    process.on('SIGTERM', () => {
+        console.log('👋 Đang tắt server...');
+        server.close(() => {
+            console.log('✅ Server đã đóng');
+            process.exit(0);
+        });
+    });
+}).catch(error => {
+    console.error("❌ Lỗi khởi động server:", error);
+    process.exit(1);
+});
+
+module.exports = app;

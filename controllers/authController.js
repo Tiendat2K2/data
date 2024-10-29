@@ -30,18 +30,15 @@ exports.register = async (req, res) => {
         if (emailResult.rows.length > 0) {
             return res.status(400).json({ message: 'Email đã được đăng ký!' });
         }
-
         const usernameQuery = 'SELECT * FROM "Users" WHERE "Username" = $1';
         const usernameResult = await client.query(usernameQuery, [Username]);
         if (usernameResult.rows.length > 0) {
             return res.status(400).json({ message: 'Username đã được đăng ký!' });
         }
-
         const countQuery = 'SELECT COUNT(*) FROM "Users"';
         const countResult = await client.query(countQuery);
         const userCount = parseInt(countResult.rows[0].count, 10);
         const roleID = userCount === 0 ? 1 : 2;
-
         const insertQuery = 'INSERT INTO "Users" ("Username", "Email", "Password", "RoleID") VALUES ($1, $2, $3, $4)';
         await client.query(insertQuery, [Username, Email, hashedPassword, roleID]);
         res.status(200).json({ status: 1, message: 'Đăng ký thành công!', roleID: roleID });
@@ -79,14 +76,14 @@ exports.login = async (req, res) => {
       // Tạo access_token với roleId và UserID
       const access_token = jwt.sign(
         { id: user.UserID, roleId: user.RoleID },
-        process.env.access_token,
+        process.env.ACCESS_TOKEN_SECRET,
         { expiresIn: '300d' }
       );
   
       // Tạo refresh_token
       const refresh_token = jwt.sign(
         { id: user.UserID, roleId: user.RoleID },
-        process.env.refresh_token,
+        process.env.REFRESH_TOKEN_SECRET,
         { expiresIn: '365h' }
       );
   
