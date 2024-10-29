@@ -1,6 +1,5 @@
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
-// Nạp biến môi trường
 require('dotenv').config();
 
 const options = {
@@ -13,7 +12,7 @@ const options = {
     },
     servers: [
       {
-        url: "http://localhost:3000", // Hardcoded URL
+        url: "http://localhost:3000", // Ensure 'http://' is included
       },
     ],
     components: {

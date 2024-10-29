@@ -1,24 +1,19 @@
 const jwt = require('jsonwebtoken');
-// Middleware to verify token
-const authMiddleware = (req, res, next) => {
-    // Get token from the authorization header
-    const token = req.headers['authorization']?.split(' ')[1];
+require('dotenv').config();
 
-    // Check if token exists
+exports.authMiddleware = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
     if (!token) {
-        return res.status(401).json({ message: 'Không có token' }); // No token provided
+        return res.status(401).json({ message: 'Token không được cung cấp!' });
     }
-    
-    // Verify token
-    jwt.verify(token, process.env.access_token, (err, decoded) => { // Ensure your secret key is set in environment variables
+
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
         if (err) {
-            return res.status(403).json({ message: 'Token không hợp lệ' }); // Invalid token
+            return res.status(403).json({ message: 'Token không hợp lệ!' });
         }
-        // Store user information in req for later use
-        req.user = decoded; // Store user info in req object
-        next(); // Proceed to the next middleware or route
+        req.user = user;
+        next();
     });
-};
-module.exports = {
-    authMiddleware,
 };

@@ -34,9 +34,7 @@ const Dulieu = sequelize.define('Dulieu', {
     tableName: 'Dulieu',
     timestamps: false
 });
-
 // Thiết lập quan hệ giữa Dulieu, Users, và ChuyenNganh
 Dulieu.belongsTo(User, { foreignKey: 'UserID', as: 'user' });
 Dulieu.belongsTo(ChuyenNganh, { foreignKey: 'ChuyenNganhID', as: 'chuyenNganh' });
-
 module.exports = Dulieu;

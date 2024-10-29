@@ -10,11 +10,13 @@ const User = sequelize.define('User', {
     },
     Email: {
         type: DataTypes.STRING(255),
-        allowNull: false
+        allowNull: false,
+        unique: true
     },
     Username: {
         type: DataTypes.STRING(255),
-        allowNull: false
+        allowNull: false,
+        unique: true
     },
     Password: {
         type: DataTypes.STRING(255),
@@ -28,7 +30,6 @@ const User = sequelize.define('User', {
             key: 'RoleID'
         }
     },
-    // Các cột khác...
     Hoten: DataTypes.STRING,
     Ngaysinh: DataTypes.DATE,
     Noisinh: DataTypes.STRING,
@@ -46,8 +47,5 @@ const User = sequelize.define('User', {
     tableName: 'Users',
     timestamps: false
 });
-
-// Thiết lập quan hệ giữa Users và Roles
 User.belongsTo(Role, { foreignKey: 'RoleID', as: 'role' });
-
 module.exports = User;
