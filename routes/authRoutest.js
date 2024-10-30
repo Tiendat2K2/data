@@ -62,31 +62,7 @@ const upload = multer({ storage: storage });
  *       200:
  *         description: Đăng ký thành công
  *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: integer
- *                   example: 1
- *                 message:
- *                   type: string
- *                   example: Đăng ký thành công!
- *                 roleID:
- *                   type: integer
- *                   example: 2
- *       400:
- *         description: Lỗi dữ liệu đầu vào
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Email đã được đăng ký!
- *       500:
- *         description: Lỗi server
+ 
  */
 router.post('/register', register);
 
