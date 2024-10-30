@@ -5,7 +5,25 @@ const jwt = require('jsonwebtoken');
 const path = require('path');
 require('dotenv').config();
 // Cấu hình multer để xử lý upload file
+function generateRandomPassword(length = 10) {
+    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const numbers = '0123456789';
+    const special = '!@#$%^&*';
 
+    let password = '';
+    password += lowercase[Math.floor(Math.random() * lowercase.length)];
+    password += uppercase[Math.floor(Math.random() * uppercase.length)];
+    password += numbers[Math.floor(Math.random() * numbers.length)];
+    password += special[Math.floor(Math.random() * special.length)];
+
+    const allChars = lowercase + uppercase + numbers + special;
+    for (let i = password.length; i < length; i++) {
+        password += allChars[Math.floor(Math.random() * allChars.length)];
+    }
+
+    return password.split('').sort(() => Math.random() - 0.5).join('');
+}
 const pool = new Pool({
     connectionString: process.env.POSTGRES_URL,
     ssl: {
