@@ -349,14 +349,17 @@ exports.downloadFile = async (req, res) => {
         const fileStream = fs.createReadStream(absolutePath);
         fileStream.on('error', (error) => {
             console.error('File stream error:', error);
-            res.status(200).json({
+            res.status(500).json({
                 status: 0,
                 message: 'Lỗi khi đọc file.',
                 error: error.message
             });
         });
 
-        fileStream.pipe(res);
+        // Gửi file đến client
+        fileStream.pipe(res).on('finish', () => {
+            res.status(200).end(); // Đảm bảo trả về mã 200 khi hoàn thành
+        });
     } catch (error) {
         console.error('Download error:', error);
         res.status(500).json({
