@@ -346,10 +346,18 @@ exports.downloadFile = async (req, res) => {
             });
         }
 
+        // Respond with a 200 status code to confirm the file was found
+        res.status(200).json({
+            status: 1,
+            message: 'File đã được tìm thấy, bắt đầu tải về.'
+        });
+
+        // Set headers for file download
         const contentType = getContentType(path.extname(relativePath));
         res.setHeader('Content-Type', contentType);
         res.setHeader('Content-Disposition', `attachment; filename="${path.basename(relativePath)}"`);
 
+        // Stream the file
         const fileStream = fs.createReadStream(absolutePath);
         fileStream.on('error', (error) => {
             console.error('File stream error:', error);
