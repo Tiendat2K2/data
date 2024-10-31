@@ -339,29 +339,17 @@ exports.downloadFile = async (req, res) => {
         const absolutePath = getAbsolutePath(relativePath);
         console.log('File path:', { relativePath, absolutePath });
 
-        if (!await fs.access(absolutePath).then(() => true).catch(() => false)) {
-            return res.status(404).json({
-                status: 0,
-                message: 'File không tồn tại hoặc không có quyền truy cập.'
-            });
-        }
+        // Kiểm tra quyền truy cập file
+        await fs.access(absolutePath);
 
-        // Respond with a 200 status code to confirm the file was found
-        res.status(200).json({
-            status: 1,
-            message: 'File đã được tìm thấy, bắt đầu tải về.'
-        });
-
-        // Set headers for file download
         const contentType = getContentType(path.extname(relativePath));
         res.setHeader('Content-Type', contentType);
         res.setHeader('Content-Disposition', `attachment; filename="${path.basename(relativePath)}"`);
 
-        // Stream the file
         const fileStream = fs.createReadStream(absolutePath);
         fileStream.on('error', (error) => {
             console.error('File stream error:', error);
-            res.status(500).json({
+            res.status(200).json({
                 status: 0,
                 message: 'Lỗi khi đọc file.',
                 error: error.message
