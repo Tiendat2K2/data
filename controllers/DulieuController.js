@@ -18,9 +18,7 @@ const createFilePath = (file) => {
 };
 
 const getAbsolutePath = (relativePath) => {
-    return process.env.NODE_ENV === 'production'
-        ? path.join('/opt/render/project/src', relativePath)
-        : path.join(__dirname, '..', relativePath);
+    return path.join(__dirname, '..', relativePath); // Đảm bảo đường dẫn chính xác
 };
 
 const getContentType = (ext) => {
