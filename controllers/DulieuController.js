@@ -321,8 +321,9 @@ exports.deleteDulieu = async (req, res) => {
 exports.downloadFile = async (req, res) => {
     try {
         const { ID } = req.params;
-        console.log('Downloading file for ID:', ID);
+        console.log(`Downloading file for ID: ${ID}`);
 
+        // Fetch file details from the database
         const result = await pool.query(
             'SELECT "Files", "Tieude" FROM "Dulieu" WHERE "ID" = $1',
             [ID]
@@ -331,45 +332,53 @@ exports.downloadFile = async (req, res) => {
         if (result.rows.length === 0) {
             return res.status(404).json({
                 status: 0,
-                message: 'Không tìm thấy file.'
+                message: 'File not found.'
             });
         }
 
         const relativePath = result.rows[0].Files;
         const absolutePath = getAbsolutePath(relativePath);
-        console.log('File path:', { relativePath, absolutePath });
+        console.log(`Resolved file path: ${absolutePath}`);
 
-        // Kiểm tra quyền truy cập file
-        await fs.access(absolutePath);
-
-        const contentType = getContentType(path.extname(relativePath));
-        res.setHeader('Content-Type', contentType);
-        res.setHeader('Content-Disposition', `attachment; filename="${path.basename(relativePath)}"`);
-
-        const fileStream = fs.createReadStream(absolutePath);
-        fileStream.on('error', (error) => {
-            console.error('File stream error:', error);
-            res.status(500).json({
+        // Check if the file exists
+        await fs.access(absolutePath).catch((err) => {
+            console.error(`File access error: ${err.message}`);
+            return res.status(404).json({
                 status: 0,
-                message: 'Lỗi khi đọc file.',
-                error: error.message
+                message: 'File does not exist on the server.'
             });
         });
 
-        // Gửi file đến client
-        fileStream.pipe(res).on('finish', () => {
-            res.status(200).end(); // Đảm bảo trả về mã 200 khi hoàn thành
+        const fileExtension = path.extname(absolutePath);
+        const contentType = getContentType(fileExtension);
+
+        // Set response headers for file download
+        res.setHeader('Content-Type', contentType);
+        res.setHeader(
+            'Content-Disposition',
+            `attachment; filename="${result.rows[0].Tieude}${fileExtension}"`
+        );
+
+        // Send the file
+        res.sendFile(absolutePath, (err) => {
+            if (err) {
+                console.error(`Error sending file: ${err.message}`);
+                res.status(500).json({
+                    status: 0,
+                    message: 'Error while sending file.',
+                    error: err.message
+                });
+            }
         });
     } catch (error) {
-        console.error('Download error:', error);
+        console.error('Error in downloadFile:', error.message);
         res.status(500).json({
             status: 0,
-            message: 'Có lỗi xảy ra khi tải file.',
+            message: 'Server error while processing the file download.',
             error: error.message
         });
     }
 };
-
 exports.viewFile = async (req, res) => {
     try {
         const { ID } = req.params;
