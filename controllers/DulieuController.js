@@ -10,30 +10,8 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
-// Helper functions
-const createFilePath = (file) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const fileExt = path.extname(file.originalname);
-    return path.join('uploads', `${uniqueSuffix}${fileExt}`);
-};
-
-const getAbsolutePath = (relativePath) => {
-    return path.join(__dirname, '..', relativePath); // Đảm bảo đường dẫn chính xác
-};
-
-const getContentType = (ext) => {
-    const contentTypes = {
-        '.pdf': 'application/pdf',
-        '.doc': 'application/msword',
-        '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    };
-    return contentTypes[ext.toLowerCase()] || 'application/octet-stream';
-};
-
 // Upload directory configuration
-const uploadDir = process.env.NODE_ENV === 'production'
-    ? '/opt/render/project/src/uploads'
-    : path.join(__dirname, '..', 'uploads');
+const uploadDir = path.join('C:\\Users\\nguye\\Desktop\\data', 'uploads');
 
 // Ensure uploads directory exists
 (async () => {
@@ -45,32 +23,25 @@ const uploadDir = process.env.NODE_ENV === 'production'
     }
 })();
 
-// Multer configuration
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, uploadDir),
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const fileExt = path.extname(file.originalname);
-        cb(null, `${uniqueSuffix}${fileExt}`);
-    }
-});
+// Helper functions
+const createFilePath = (file) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const fileExt = path.extname(file.originalname);
+    return path.join('uploads', `${uniqueSuffix}${fileExt}`);
+};
 
-const upload = multer({
-    storage,
-    fileFilter: (req, file, cb) => {
-        const allowedTypes = [
-            'application/pdf',
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        ];
-        if (allowedTypes.includes(file.mimetype)) {
-            cb(null, true);
-        } else {
-            cb(new Error('Invalid file type. Only PDF and Word documents are allowed.'));
-        }
-    },
-    limits: { fileSize: 10 * 1024 * 1024 } // 10MB
-}).single('Files');
+const getAbsolutePath = (relativePath) => {
+    return path.join('C:\\Users\\nguye\\Desktop\\data', relativePath); // Đảm bảo đường dẫn chính xác
+};
+
+const getContentType = (ext) => {
+    const contentTypes = {
+        '.pdf': 'application/pdf',
+        '.doc': 'application/msword',
+        '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    };
+    return contentTypes[ext.toLowerCase()] || 'application/octet-stream';
+};
 
 // Controllers
 exports.getDulieu = async (req, res) => {
@@ -319,9 +290,8 @@ exports.deleteDulieu = async (req, res) => {
 exports.downloadFile = async (req, res) => {
     try {
         const { ID } = req.params;
-        console.log(`Downloading file for ID: ${ID}`);
+        console.log('Downloading file for ID:', ID);
 
-        // Fetch file details from the database
         const result = await pool.query(
             'SELECT "Files", "Tieude" FROM "Dulieu" WHERE "ID" = $1',
             [ID]
@@ -330,53 +300,48 @@ exports.downloadFile = async (req, res) => {
         if (result.rows.length === 0) {
             return res.status(404).json({
                 status: 0,
-                message: 'File not found.'
+                message: 'Không tìm thấy file.'
             });
         }
 
         const relativePath = result.rows[0].Files;
         const absolutePath = getAbsolutePath(relativePath);
-        console.log(`Resolved file path: ${absolutePath}`);
+        console.log('Resolved file path:', absolutePath);
 
-        // Check if the file exists
-        await fs.access(absolutePath).catch((err) => {
-            console.error(`File access error: ${err.message}`);
-            return res.status(404).json({
+        // Kiểm tra quyền truy cập file
+        await fs.access(absolutePath);
+
+        const contentType = getContentType(path.extname(relativePath));
+        res.setHeader('Content-Type', contentType);
+        res.setHeader('Content-Disposition', `attachment; filename="${path.basename(relativePath)}"`);
+
+        const fileStream = fs.createReadStream(absolutePath);
+        fileStream.on('error', (error) => {
+            console.error('File stream error:', error);
+            res.status(500).json({
                 status: 0,
-                message: 'File does not exist on the server.'
+                message: 'Lỗi khi đọc file.',
+                error: error.message
             });
         });
 
-        const fileExtension = path.extname(absolutePath);
-        const contentType = getContentType(fileExtension);
-
-        // Set response headers for file download
-        res.setHeader('Content-Type', contentType);
-        res.setHeader(
-            'Content-Disposition',
-            `attachment; filename="${result.rows[0].Tieude}${fileExtension}"`
-        );
-
-        // Send the file
-        res.sendFile(absolutePath, (err) => {
-            if (err) {
-                console.error(`Error sending file: ${err.message}`);
-                res.status(500).json({
-                    status: 0,
-                    message: 'Error while sending file.',
-                    error: err.message
-                });
-            }
+        // Gửi phản hồi thành công với status 1
+        res.status(200).json({
+            status: 1,
+            message: 'Tải file thành công!',
         });
+
+        fileStream.pipe(res);
     } catch (error) {
-        console.error('Error in downloadFile:', error.message);
+        console.error('Download error:', error);
         res.status(500).json({
             status: 0,
-            message: 'Server error while processing the file download.',
+            message: 'Có lỗi xảy ra khi tải file.',
             error: error.message
         });
     }
 };
+
 exports.viewFile = async (req, res) => {
     try {
         const { ID } = req.params;
